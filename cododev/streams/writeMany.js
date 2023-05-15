@@ -22,6 +22,21 @@ const fs = require('node:fs/promises');
 //   });
   
 // })();
+// this implementation sucks btw!!!
+// (async () => {
+//   console.time("writeMany");
+  
+//   const fileHandle = await fs.open("test.txt", "w");
+  
+//   const stream = fileHandle.createWriteStream();
+  
+//   for (let i = 0; i < 1000000; i++) {
+//     const buff = Buffer.from(` ${i} `, "utf-8");
+//     stream.write(buff);
+//   }
+//   console.timeEnd("writeMany");
+  
+// })();
 
 (async () => {
   console.time("writeMany");
@@ -29,11 +44,35 @@ const fs = require('node:fs/promises');
   const fileHandle = await fs.open("test.txt", "w");
   
   const stream = fileHandle.createWriteStream();
-  
-  for (let i = 0; i < 1000000; i++) {
+console.log(stream.writableHighWaterMark);
+
+let i = 0;
+
+const writeMany = () => {
+  while (i < 10000000) {
     const buff = Buffer.from(` ${i} `, "utf-8");
-    stream.write(buff);
+    
+    if (i === 9999999) {
+       return stream.end(buff);
+    }
+      
+    if (!stream.write(buff)) break;
+    
+    i++;
   }
-  console.timeEnd("writeMany");
+};
+
+writeMany();
+
+// resume our loop once our stream internal buffer is emptied
+stream.on("drain", () => {
+    console.log("Draining!!");
+  writeMany();
+});
+  
+stream.on("finish", () => {
+    console.timeEnd("writeMany");
+    fileHandle.close();
+});
   
 })();
