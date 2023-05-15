@@ -6,5 +6,10 @@
 
 **Technology concepts covered include**
  - v8
+ - libuv
+ - Buffers
+ - File Module
+ - EventEmitter
+ - Streams
  
 ## Examples
